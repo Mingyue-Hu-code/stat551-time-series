@@ -1,0 +1,57 @@
+---
+title: "homework 7"
+author: "mingyue hu"
+date: "12/2/2022"
+output: html_document
+---
+
+##5.5(a)
+```{r setup, include=FALSE}
+set.seed(2022) # for reproducibility
+
+n <- 200
+theta <- 0.6
+library(itsmr)
+library(purrr)
+dat.sim<-map(rep(n, 20),sim,a = specify(ma = theta))# obtain simulated data
+# (a)
+res.acvf <- apply(dat.sim, 2, acvf, h = 1)
+obtain_MME <- function(gamma0, gamma1) {
+# function of obtaining method of moments estimator 
+rho1 <- gamma1 / gamma0
+theta <- ifelse(abs(rho1) > 0.5,
+                sign(rho1), # not causal (imaginary roots of quadratic formula) 
+                (1 - sqrt(1 - 4*rho1^2)) / (2*rho1) )
+# obtain gamma0, gamma1
+  return(theta)
+}
+
+res.MME <- data.frame(map2(res.acvf[1, ], res.acvf[2, ], obtain_MME)) # method of moments
+dat.sim
+```
+
+## (b)
+```{r setup, include=FALSE}
+res.IA <- data.frame(apply(dat.sim, 2, ia, q = 1))# innovations algorithm 
+res.MLE <- data.frame(apply(dat.sim, 2, arma, q = 1))
+```
+
+
+## (c)
+```{r setup, include=FALSE}
+data.frame(
+  MME = res.MME,
+  IA = res.IA,
+  MLE = res.MLE
+) %>% apply(2, function(x) {c(mean = mean(x), var = var(x))}) %>% round(4)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
